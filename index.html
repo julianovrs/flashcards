@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perguntas e Respostas</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a fonte Inter para todo o corpo e tema escuro */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Fundo escuro principal */
+            color: #e2e8f0; /* Cor do texto claro */
+        }
+        /* Estilos para o cartão virar */
+        .flashcard-container {
+            perspective: 1000px; /* Perspectiva para o efeito 3D */
+            width: 100%;
+            max-width: 400px; /* Largura máxima do cartão */
+            height: 250px; /* Altura fixa do cartão */
+            position: relative;
+            margin: 0 auto; /* Centraliza o cartão */
+        }
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d; /* Preserva o 3D para as faces */
+            transition: transform 0.6s ease-in-out; /* Transição suave para o giro */
+            border-radius: 1rem; /* Cantos arredondados */
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2); /* Sombra mais pronunciada */
+        }
+        .flashcard.flipped {
+            transform: rotateY(180deg); /* Gira o cartão 180 graus no eixo Y */
+        }
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* Esconde a face de trás quando virada */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            color: #f8fafc; /* Cor do texto claro para as faces */
+            font-size: 1.35rem; /* Tamanho da fonte ligeiramente maior */
+            line-height: 1.85rem;
+            font-weight: 600; /* Peso da fonte mais forte */
+            border: 2px solid rgba(255, 255, 255, 0.1); /* Borda sutil */
+        }
+        .flashcard-front {
+            background-color: #2c5282; /* Novo azul escuro para a frente */
+            color: #a0aec0; /* Cor do texto mais clara para a frente */
+        }
+        .flashcard-back {
+            transform: rotateY(180deg); /* Gira a face de trás para que fique visível quando o cartão for virado */
+            background-color: #38a169; /* Verde escuro (cor anterior) para o verso */
+            color: #f0fff4; /* Cor do texto claro (cor anterior) para o verso */
+        }
+        /* Estilos para os botões de navegação e categorias */
+        .nav-button {
+            @apply px-7 py-3 rounded-full font-bold transition-all duration-300 ease-in-out transform;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.05em; /* Espaçamento entre letras */
+        }
+        .nav-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        .nav-button:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .prev-button {
+            @apply bg-blue-700 text-white hover:bg-blue-800;
+        }
+        .next-button {
+            @apply bg-green-700 text-white hover:bg-green-800;
+        }
+        .reset-button {
+            @apply bg-purple-700 text-white hover:bg-purple-800;
+        }
+        .category-button {
+            @apply px-5 py-2 rounded-full font-semibold text-sm transition-all duration-300 ease-in-out transform;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        .category-button:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .category-button.active {
+            @apply bg-indigo-500 text-white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .category-button:not(.active) {
+            @apply bg-gray-700 text-gray-300 hover:bg-gray-600;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="max-w-4xl w-full bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-8 border border-gray-700">
+        <h1 class="text-5xl font-extrabold text-center text-white mb-8 tracking-wide">Flashcards Interativos</h1>
+
+        <!-- Botões de Categoria -->
+        <div class="flex justify-center space-x-4 mb-8">
+            <button id="history-category" class="category-button active">História</button>
+            <button id="math-category" class="category-button">Matemática</button>
+        </div>
+
+        <!-- Indicador de Progresso -->
+        <div class="text-center text-xl font-medium text-gray-400 mb-6">
+            <span id="current-question-index">1</span> de <span id="total-questions">10</span>
+        </div>
+
+        <!-- Container do Flashcard -->
+        <div class="flashcard-container mb-8" id="flashcard-container">
+            <div class="flashcard" id="flashcard">
+                <div class="flashcard-face flashcard-front" id="flashcard-front">
+                    <!-- Conteúdo da pergunta aqui -->
+                </div>
+                <div class="flashcard-face flashcard-back" id="flashcard-back">
+                    <!-- Conteúdo da resposta aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões de Navegação -->
+        <div class="flex justify-center space-x-6">
+            <button id="prev-button" class="nav-button prev-button">Anterior</button>
+            <button id="next-button" class="nav-button next-button">Próxima</button>
+        </div>
+
+        <!-- Botão de Reiniciar -->
+        <div class="flex justify-center mt-6">
+            <button id="reset-button" class="nav-button reset-button">Reiniciar</button>
+        </div>
+    </div>
+
+    <script>
+        const flashcard = document.getElementById('flashcard');
+        const flashcardFront = document.getElementById('flashcard-front');
+        const flashcardBack = document.getElementById('flashcard-back');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const resetButton = document.getElementById('reset-button');
+        const currentQuestionIndexSpan = document.getElementById('current-question-index');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const historyCategoryButton = document.getElementById('history-category');
+        const mathCategoryButton = document.getElementById('math-category');
+
+        // Dados das perguntas e respostas
+        const allQuestions = {
+            history: [
+                { question: "Quem foi o primeiro presidente do Brasil?", answer: "Marechal Deodoro da Fonseca." },
+                { question: "Em que ano o Brasil proclamou a independência?", answer: "1822." },
+                { question: "Qual evento marcou o início da Primeira Guerra Mundial?", answer: "O assassinato do Arquiduque Francisco Ferdinando." },
+                { question: "Quem escreveu 'Dom Casmurro'?", answer: "Machado de Assis." },
+                { question: "Qual civilização construiu as pirâmides do Egito?", answer: "Os antigos egípcios." },
+                { question: "Em que ano a Lei Áurea foi assinada no Brasil?", answer: "1888." },
+                { question: "Quem foi o líder da Revolução Cubana?", answer: "Fidel Castro." },
+                { question: "Qual império foi governado por Júlio César?", answer: "O Império Romano." },
+                { question: "Qual foi o principal objetivo da Inconfidência Mineira?", answer: "Obter a independência do Brasil de Portugal." },
+                { question: "Quem foi o navegador português que chegou às Índias contornando a África?", answer: "Vasco da Gama." }
+            ],
+            math: [
+                { question: "Quanto é 7 multiplicado por 8?", answer: "56." },
+                { question: "Qual é a raiz quadrada de 144?", answer: "12." },
+                { question: "Se um triângulo tem ângulos de 90 e 45 graus, qual é o terceiro ângulo?", answer: "45 graus." },
+                { question: "Quanto é 25% de 200?", answer: "50." },
+                { question: "Qual é o valor de Pi (aproximadamente)?", answer: "3.14159." },
+                { question: "Se x + 5 = 12, qual é o valor de x?", answer: "7." },
+                { question: "Qual é o próximo número na sequência: 1, 4, 9, 16...?", answer: "25 (quadrados perfeitos)." },
+                { question: "Quanto é 1/2 + 1/4?", answer: "3/4." },
+                { question: "Qual é o perímetro de um quadrado com lado de 5 cm?", answer: "20 cm." },
+                { question: "Quanto é 10 elevado à potência de 3?", answer: "1000." }
+            ]
+        };
+
+        let currentCategory = 'history';
+        let currentQuestions = allQuestions[currentCategory];
+        let currentQuestionIndex = 0;
+        let isFlipped = false;
+
+        // Função para exibir o cartão atual
+        function displayFlashcard() {
+            const questionData = currentQuestions[currentQuestionIndex];
+            flashcardFront.textContent = questionData.question;
+            flashcardBack.textContent = questionData.answer;
+            currentQuestionIndexSpan.textContent = currentQuestionIndex + 1;
+            totalQuestionsSpan.textContent = currentQuestions.length;
+
+            // Garante que o cartão esteja na frente ao mudar de pergunta
+            if (isFlipped) {
+                flashcard.classList.remove('flipped');
+                isFlipped = false;
+            }
+        }
+
+        // Função para virar o cartão
+        function flipCard() {
+            flashcard.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        }
+
+        // Event Listeners
+        flashcard.addEventListener('click', flipCard);
+
+        prevButton.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayFlashcard();
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            if (currentQuestionIndex < currentQuestions.length - 1) {
+                currentQuestionIndex++;
+                displayFlashcard();
+            }
+        });
+
+        resetButton.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            displayFlashcard();
+        });
+
+        historyCategoryButton.addEventListener('click', () => {
+            currentCategory = 'history';
+            currentQuestions = allQuestions[currentCategory];
+            currentQuestionIndex = 0;
+            displayFlashcard();
+            historyCategoryButton.classList.add('active');
+            mathCategoryButton.classList.remove('active');
+        });
+
+        mathCategoryButton.addEventListener('click', () => {
+            currentCategory = 'math';
+            currentQuestions = allQuestions[currentCategory];
+            currentQuestionIndex = 0;
+            displayFlashcard();
+            mathCategoryButton.classList.add('active');
+            historyCategoryButton.classList.remove('active');
+        });
+
+        // Inicializa o primeiro cartão ao carregar a página
+        displayFlashcard();
+    </script>
+</body>
+</html>
