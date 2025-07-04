@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perguntas e Respostas</title>
     <!-- Tailwind CSS CDN -->
@@ -85,6 +85,7 @@
         <div class="flex justify-center space-x-4 mb-8">
             <button id="history-category" class="category-button active">História</button>
             <button id="math-category" class="category-button">Matemática</button>
+            <button id="movies-category" class="category-button">Filmes</button>
         </div>
 
         <!-- Container da Grade de Flashcards -->
@@ -97,6 +98,7 @@
         const flashcardsGrid = document.getElementById('flashcards-grid');
         const historyCategoryButton = document.getElementById('history-category');
         const mathCategoryButton = document.getElementById('math-category');
+        const moviesCategoryButton = document.getElementById('movies-category'); // Novo botão de categoria
 
         // Dados das perguntas e respostas
         const allQuestions = {
@@ -123,6 +125,18 @@
                 { question: "Quanto é 1/2 + 1/4?", answer: "3/4." },
                 { question: "Qual é o perímetro de um quadrado com lado de 5 cm?", answer: "20 cm." },
                 { question: "Quanto é 10 elevado à potência de 3?", answer: "1000." }
+            ],
+            movies: [ // Nova categoria de filmes
+                { question: "Qual é o nome do brinquedo cowboy em Toy Story?", answer: "Woody." },
+                { question: "Qual é o nome do peixe palhaço em Procurando Nemo?", answer: "Marlin." },
+                { question: "Qual é o nome do robô que limpa a Terra em um futuro distante?", answer: "WALL-E." },
+                { question: "Qual é o filme da Disney onde uma princesa tem cabelos muito longos?", answer: "Enrolados." },
+                { question: "Em que filme você encontraria um ogro verde chamado Shrek?", answer: "Shrek." },
+                { question: "Qual é o nome do leão principal em O Rei Leão?", answer: "Simba." },
+                { question: "Qual é o nome da garota que faz amizade com um ET?", answer: "Gertie (E.T. - O Extraterrestre)." },
+                { question: "Qual é o nome do feiticeiro em Fantasia que tem um chapéu pontudo?", answer: "Yen Sid." },
+                { question: "Qual é o nome da cidade onde se passa o filme Carros?", answer: "Radiator Springs." },
+                { question: "Qual é o nome do dragão em Como Treinar o Seu Dragão?", answer: "Banguela." }
             ]
         };
 
@@ -160,21 +174,35 @@
             });
         }
 
+        // Função auxiliar para atualizar o estado dos botões de categoria
+        function updateCategoryButtons(activeButtonId) {
+            historyCategoryButton.classList.remove('active');
+            mathCategoryButton.classList.remove('active');
+            moviesCategoryButton.classList.remove('active'); // Remove 'active' do novo botão
+
+            document.getElementById(activeButtonId).classList.add('active');
+        }
+
         // Event Listeners para as categorias
         historyCategoryButton.addEventListener('click', () => {
             currentCategory = 'history';
             currentQuestions = allQuestions[currentCategory];
             renderFlashcards();
-            historyCategoryButton.classList.add('active');
-            mathCategoryButton.classList.remove('active');
+            updateCategoryButtons('history-category');
         });
 
         mathCategoryButton.addEventListener('click', () => {
             currentCategory = 'math';
             currentQuestions = allQuestions[currentCategory];
             renderFlashcards();
-            mathCategoryButton.classList.add('active');
-            historyCategoryButton.classList.remove('active');
+            updateCategoryButtons('math-category');
+        });
+
+        moviesCategoryButton.addEventListener('click', () => { // Event listener para a nova categoria
+            currentCategory = 'movies';
+            currentQuestions = allQuestions[currentCategory];
+            renderFlashcards();
+            updateCategoryButtons('movies-category');
         });
 
         // Inicializa a grade de flashcards ao carregar a página
